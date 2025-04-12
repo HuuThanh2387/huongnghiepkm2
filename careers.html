@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerGuide - Khám phá ngành nghề</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+    :root {
+        --primary: #3498db;
+        --secondary: #2c3e50;
+    }
+    
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #333;
+    }
+    
+    .hero-section {
+        background: url('https://i.ibb.co/sdLRK15L/hoc-nghe-gi-de-kiem-viec-lam.jpg') no-repeat center center;
+        background-size: cover;
+        color: white;
+        position: relative;
+        padding: 6rem 0;
+        width: 100%;
+        aspect-ratio: 16/9;
+    }
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+        }
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        .career-card {
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            border: none;
+            height: 100%;
+        }
+        .career-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+        .nav-pills .nav-link.active {
+            background-color: var(--secondary);
+        }
+        .badge-outline {
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+            background: transparent;
+        }
+        .navbar-toggler {
+            border-color: rgba(255,255,255,0.5);
+        }
+        
+         /* Thêm vào phần style */
+    .nav-pills {
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .nav-pills .nav-link {
+        color: #2c3e50;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 50px;
+        padding: 8px 20px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin: 5px 0;
+    }
+    
+    .nav-pills .nav-link:hover {
+        background-color: #e9ecef;
+        border-color: #adb5bd;
+    }
+    
+    .nav-pills .nav-link.active {
+        background-color: #3498db;
+        color: white;
+        border-color: #3498db;
+        box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+    }
+    
+    /* Đảm bảo menu hiển thị tốt trên mobile */
+    @media (max-width: 768px) {
+        .nav-pills {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .nav-pills .nav-link {
+            width: 100%;
+            text-align: center;
+        }
+    }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-briefcase me-2"></i>Thông Tin Ngành Nghề
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Trang chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="careers.html">Ngành nghề</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="Khaosat.html">Trắc nghiệm</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import {
+    getDatabase,
+    ref,
+    onValue,
+    set,
+    push,
+    remove,
+    onDisconnect,
+    serverTimestamp,
+    runTransaction
+  } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+  const firebaseConfig = {
+    databaseURL: "https://people-c0971-default-rtdb.asia-southeast1.firebasedatabase.app",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // Người online
+  const userRef = push(ref(db, "onlineUsers"));
+  await set(userRef, { onlineAt: serverTimestamp() });
+  onDisconnect(userRef).remove();
+
+  onValue(ref(db, "onlineUsers"), (snapshot) => {
+    document.getElementById("online-count").textContent = snapshot.size;
+  });
+
+  // Lượt truy cập
+  const countRef = ref(db, "visitCount");
+  runTransaction(countRef, (current) => (current || 0) + 1);
+
+  onValue(countRef, (snapshot) => {
+    document.getElementById("visit-count").textContent = snapshot.val() || 0;
+  });
+</script>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container text-center hero-content">
+            <h1 class="display-4 fw-bold mb-3">Khám phá 14 nhóm ngành nghề</h1>
+            <p class="lead mb-4">Thông tin chi tiết về các ngành nghề hot nhất hiện nay</p>
+            <a href="#career-groups" class="btn btn-primary btn-lg mt-2">
+                <i class="fas fa-arrow-down me-2"></i>Xem ngay
+            </a>
+        </div>
+    </section>
+
+   <!-- Career Categories -->
+<!-- Thay đổi phần menu ngành nghề -->
+<ul class="nav nav-pills mb-5 justify-content-center flex-wrap" id="careerTabs">
+    <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="pill" href="#technology">
+            <i class="fas fa-laptop-code me-2"></i>Công nghệ
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="pill" href="#health">
+            <i class="fas fa-heartbeat me-2"></i>Y tế - Sức khỏe
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="pill" href="#education">
+            <i class="fas fa-graduation-cap me-2"></i>Giáo dục
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="pill" href="#business">
+            <i class="fas fa-chart-line me-2"></i>Kinh doanh
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="pill" href="#arts">
+            <i class="fas fa-palette me-2"></i>Nghệ thuật
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="pill" href="#engineering">
+            <i class="fas fa-cogs me-2"></i>Kỹ thuật
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="pill" href="#tourism">
+            <i class="fas fa-hotel me-2"></i>Du lịch
+        </a>
+    </li>
+</ul>
+        <div class="tab-content">
+            <!-- Công nghệ thông tin -->
+            <div class="tab-pane container active" id="technology">
+                <div class="row">
+                    <!-- Lập trình viên -->
+                    <div class="col-md-4 mb-4">
+                        <div class="career-card card h-100">
+                            <img src="https://i.ibb.co/KpzmC6fH/lap-trinh-4.jpg?text=Lập+trình+viên" class="card-img-top" alt="Lập trình viên">
+                            <div class="card-body">
+                                <h5 class="card-title">Lập trình viên</h5>
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <span class="badge bg-primary">15-50 triệu</span>
+                                    <span class="badge bg-success">Độ hot: Cao</span>
+                                </div>
+                                <p class="card-text">Phát triển phần mềm, ứng dụng và hệ thống công nghệ thông tin.</p>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Tư duy logic tốt</li>
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Đại học/Cao đẳng CNTT</li>
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Kinh nghiệm lập trình</li>
+                                </ul>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <a href="https://topdev.vn" target="_blank" class="btn btn-outline-primary w-100">
+                                    Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Chuyên gia An ninh mạng -->
+                    <div class="col-md-4 mb-4">
+                        <div class="career-card card h-100">
+                            <img src="https://i.ibb.co/bjrWSgWW/c076d6ca0b4d2bffe14f8732ea3bf4aa.jpg?text=An+ninh+mạng" class="card-img-top" alt="An ninh mạng">
+                            <div class="card-body">
+                                <h5 class="card-title">Chuyên gia an ninh mạng</h5>
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <span class="badge bg-primary">20-70 triệu</span>
+                                    <span class="badge bg-success">Độ hot: Rất cao</span>
+                                </div>
+                                <p class="card-text">Bảo vệ hệ thống khỏi các cuộc tấn công mạng.</p>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Kiến thức bảo mật</li>
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Chứng chỉ CEH, CISSP</li>
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Kinh nghiệm pentest</li>
+                                </ul>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <a href="https://swinburne-vn.edu.vn/news/chuyen-nganh-an-ninh-mang-la-gi/" target="_blank" class="btn btn-outline-primary w-100">
+                                    Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+     <!-- Công nghệ - Chuyên gia AI -->
+    <div class="col-md-4 mb-4">
+        <div class="career-card card h-100">
+            <img src="https://i.ibb.co/gnRjyz7/084728194-chuyen-gia-tri-tue-nhan-tao-2.jpg" class="card-img-top" alt="Chuyên gia AI">
+            <div class="card-body">
+                <h5 class="card-title">Chuyên gia AI</h5>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge bg-primary">30-100 triệu</span>
+                    <span class="badge bg-danger">Độ hot: Rất cao</span>
+                </div>
+                <p class="card-text">Nghiên cứu và phát triển hệ thống trí tuệ nhân tạo, machine learning.</p>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Bằng Thạc sĩ trở lên</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Thành thạo Python/TensorFlow</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Tư duy toán học</li>
+                </ul>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="https://hrchannels.com/uptalent/chuyen-gia-tri-tue-nhan-tao-ai-specialist.html" target="_blank" class="btn btn-outline-primary w-100">
+                    Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+                </div>
+</div>
+         
+
+            <!-- Y tế -->
+<div class="tab-pane container fade" id="health">
+    <div class="row">
+        <!-- Bác sĩ đa khoa -->
+        <div class="col-md-4 mb-4">
+            <div class="career-card card h-100">
+                <img src="https://i.ibb.co/BVL7VJSY/images.jpg?text=Bác+sĩ" class="card-img-top" alt="Bác sĩ">
+                <div class="card-body">
+                    <h5 class="card-title">Bác sĩ Đa khoa</h5>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge bg-primary">30-50 triệu</span>
+                        <span class="badge bg-success">Rất hot</span>
+                    </div>
+                    <p class="card-text">Chẩn đoán và điều trị bệnh lý thông thường.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Bằng Đại học Y</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Chứng chỉ hành nghề</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Kỹ năng giao tiếp</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="https://thuvienphapluat.vn/hoi-dap-phap-luat/839F381-hd-bac-si-da-khoa-la-gi-thoi-gian-thuc-hanh-kham-chua-benh-cua-bac-si-da-khoa-la-bao-nhieu-thang.html" target="_blank" class="btn btn-outline-primary w-100">
+                        Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Điều dưỡng viên -->
+        <div class="col-md-4 mb-4">
+            <div class="career-card card h-100">
+                <img src="https://i.ibb.co/0yLpCM9N/free-vector-detailed-doctors-and-nurses.jpg?text=Điều+dưỡng" class="card-img-top" alt="Điều dưỡng">
+                <div class="card-body">
+                    <h5 class="card-title">Điều dưỡng Viên</h5>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge bg-primary">15-25 triệu</span>
+                        <span class="badge bg-warning text-dark">Nhu cầu cao</span>
+                    </div>
+                    <p class="card-text">Chăm sóc bệnh nhân theo chỉ định bác sĩ.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Cao đẳng Điều dưỡng</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Chứng chỉ hành nghề</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Tỉ mỉ, kiên nhẫn</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="http://nganhdieuduong.edu.vn/gioi-thieu-nganh-dieu-duong/" target="_blank" class="btn btn-outline-primary w-100">
+                        Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+ <!-- Y tế - Kỹ thuật viên X-quang (Thay thế Điều dưỡng) -->
+    <div class="col-md-4 mb-4">
+        <div class="career-card card h-100">
+            <img src="https://i.ibb.co/cXcbTSY9/ky-thuat-vien-x-quang-2.jpg" class="card-img-top" alt="Kỹ thuật viên X-quang">
+            <div class="card-body">
+                <h5 class="card-title">Kỹ thuật viên X-quang</h5>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge bg-primary">12-30 triệu</span>
+                    <span class="badge bg-success">Độ hot: Tăng mạnh</span>
+                </div>
+                <p class="card-text">Vận hành máy chụp X-quang, CT, MRI và hỗ trợ chẩn đoán hình ảnh.</p>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Bằng cao đẳng Kỹ thuật hình ảnh</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Chứng chỉ hành nghề</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Hiểu biết an toàn bức xạ</li>
+                </ul>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="https://www-radiologyinfo-org.translate.goog/en/info/article-radiologic-technologist?_x_tr_sl=en&_x_tr_tl=vi&_x_tr_hl=vi&_x_tr_pto=wa" target="_blank" class="btn btn-outline-danger w-100">
+                    Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+
+<!-- Giáo dục -->
+<div class="tab-pane container fade" id="education">
+    <div class="row">
+        <!-- Giáo viên THPT -->
+        <div class="col-md-4 mb-4">
+            <div class="career-card card h-100">
+                <img src="https://i.ibb.co/RkXZvTMy/hinh-anh-1848.jpg?text=Giáo+viên" class="card-img-top" alt="Giáo viên">
+                <div class="card-body">
+                    <h5 class="card-title">Giáo viên THPT</h5>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge bg-primary">10-25 triệu</span>
+                        <span class="badge bg-info">Ổn định</span>
+                    </div>
+                    <p class="card-text">Giảng dạy các môn học chuyên ngành tại trường trung học.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Bằng sư phạm</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Chứng chỉ nghiệp vụ</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Khả năng truyền đạt tốt</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="https://luatminhkhue.vn/nghe-giao-vien-la-gi.aspx" target="_blank" class="btn btn-outline-primary w-100">
+                        Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Giảng viên Đại học -->
+        <div class="col-md-4 mb-4">
+            <div class="career-card card h-100">
+                <img src="https://i.ibb.co/Z1xH9C7z/hinh-anh-3299.jpg?text=Giảng+viên" class="card-img-top" alt="Giảng viên">
+                <div class="card-body">
+                    <h5 class="card-title">Giảng viên Đại học</h5>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge bg-primary">15-40 triệu</span>
+                        <span class="badge bg-success">Nhu cầu cao</span>
+                    </div>
+                    <p class="card-text">Giảng dạy và nghiên cứu tại các trường đại học, cao đẳng.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Bằng Thạc sĩ trở lên</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Kinh nghiệm giảng dạy</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Nghiên cứu khoa học</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="https://blog.topcv.vn/giang-vien-la-gi/" target="_blank" class="btn btn-outline-primary w-100">
+                        Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+<!-- Giáo dục - Huấn luyện viên kỹ năng -->
+    <div class="col-md-4 mb-4">
+        <div class="career-card card h-100">
+            <img src="https://i.ibb.co/Ndpsrt91/fife-coach-1-1729589851240.jpg" class="card-img-top" alt="Huấn luyện viên">
+            <div class="card-body">
+                <h5 class="card-title">Huấn luyện viên kỹ năng</h5>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge bg-primary">15-40 triệu</span>
+                    <span class="badge bg-info">Độ hot: Tăng</span>
+                </div>
+                <p class="card-text">Đào tạo kỹ năng mềm và phát triển năng lực cá nhân.</p>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Kinh nghiệm đứng lớp</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Kỹ năng truyền đạt xuất sắc</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Hiểu biết tâm lý học</li>
+                </ul>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="https://fschool.fpt.edu.vn/giao-vien-ky-nang-mem/" target="_blank" class="btn btn-outline-warning w-100">
+                    Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+
+<!-- Kinh doanh -->
+<div class="tab-pane container fade" id="business">
+    <div class="row">
+        <!-- Nhân viên kinh doanh -->
+        <div class="col-md-4 mb-4">
+            <div class="career-card card h-100">
+                <img src="https://i.ibb.co/n8rfK9BV/Sales-l-g.png?text=Kinh+doanh" class="card-img-top" alt="Kinh doanh">
+                <div class="card-body">
+                    <h5 class="card-title">Nhân viên Kinh doanh</h5>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge bg-primary">8-30 triệu</span>
+                        <span class="badge bg-success">Linh hoạt</span>
+                    </div>
+                    <p class="card-text">Tìm kiếm khách hàng và phát triển thị trường.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Kỹ năng giao tiếp</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Kiến thức sản phẩm</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Khả năng thuyết phục</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="https://careerviet.vn/vi/talentcommunity/wiki-career/nhan-vien-kinh-doanh-la-ai-mo-ta-cong-viec-chi-tiet.35A51DEC.html" target="_blank" class="btn btn-outline-primary w-100">
+                        Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Chuyên viên phân tích tài chính -->
+        <div class="col-md-4 mb-4">
+            <div class="career-card card h-100">
+                <img src="https://i.ibb.co/VWg7JT2j/phan-tich-tai-chinh-la-gijpg638148552308638988.jpg?text=Tài+chính" class="card-img-top" alt="Tài chính">
+                <div class="card-body">
+                    <h5 class="card-title">Chuyên viên Phân tích Tài chính</h5>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge bg-primary">20-50 triệu</span>
+                        <span class="badge bg-success">Độ hot: Cao</span>
+                    </div>
+                    <p class="card-text">Phân tích dữ liệu tài chính và đưa ra chiến lược đầu tư.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Bằng Kinh tế/Tài chính</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Chứng chỉ CFA (ưu tiên)</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Tư duy phân tích</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="https://is.tnu.edu.vn/chuyen-vien-phan-tich-tai-chinh-lam-gi/" target="_blank" class="btn btn-outline-primary w-100">
+                        Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+<!-- Kinh doanh - Chuyên gia Digital Marketing -->
+    <div class="col-md-4 mb-4">
+        <div class="career-card card h-100">
+            <img src="https://i.ibb.co/My4GjMtH/cong-viec-cua-digital-marketing-bi-quyet-de-tro-thanh-chuyen-gia-trong-linh-vuc-nay.jpg" class="card-img-top" alt="Digital Marketing">
+            <div class="card-body">
+                <h5 class="card-title">Chuyên gia Digital Marketing</h5>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge bg-primary">20-60 triệu</span>
+                    <span class="badge bg-success">Độ hot: Bùng nổ</span>
+                </div>
+                <p class="card-text">Xây dựng chiến lược marketing online và quảng bá thương hiệu.</p>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Thành thạo SEO/Google Ads</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Kinh nghiệm quản lý campaign</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Phân tích dữ liệu</li>
+                </ul>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="https://vinuni.edu.vn/vi/lam-the-nao-de-tro-thanh-mot-digital-marketing-specialist-xuat-sac/" target="_blank" class="btn btn-outline-info w-100">
+                    Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+
+<!-- Nghệ thuật -->
+<div class="tab-pane container fade" id="arts">
+    <div class="row">
+        <!-- Thiết kế đồ họa -->
+        <div class="col-md-4 mb-4">
+            <div class="career-card card h-100">
+                <img src="https://i.ibb.co/7J2RgWZ9/btec.jpg?text=Thiết+kế" class="card-img-top" alt="Thiết kế">
+                <div class="card-body">
+                    <h5 class="card-title">Thiết kế Đồ họa</h5>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge bg-primary">10-30 triệu</span>
+                        <span class="badge bg-warning text-dark">Sáng tạo</span>
+                    </div>
+                    <p class="card-text">Tạo ra các sản phẩm đồ họa phục vụ truyền thông, quảng cáo.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Kỹ năng Photoshop, AI</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Mỹ thuật, sáng tạo</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Kinh nghiệm thiết kế</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="https://mindx.edu.vn/blog/thiet-ke-do-hoa-la-gi-hoc-thiet-ke-do-hoa-co-the-lam-nhung-cong-viec-gi" target="_blank" class="btn btn-outline-primary w-100">
+                        Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Biên đạo múa -->
+        <div class="col-md-4 mb-4">
+            <div class="career-card card h-100">
+                <img src="https://i.ibb.co/kgQJLw6x/istockphoto-2159865020-612x612.jpg?text=Nghệ+thuật" class="card-img-top" alt="Nghệ thuật">
+                <div class="card-body">
+                    <h5 class="card-title">Biên đạo Múa</h5>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge bg-primary">8-25 triệu</span>
+                        <span class="badge bg-info">Đặc thù</span>
+                    </div>
+                    <p class="card-text">Sáng tạo và dàn dựng các tác phẩm múa, biểu diễn nghệ thuật.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Tốt nghiệp nghệ thuật</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Kinh nghiệm biểu diễn</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Óc sáng tạo nghệ thuật</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="https://glints.com/vn/blog/bien-dao-la-gi/" target="_blank" class="btn btn-outline-primary w-100">
+                        Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+<!-- Nghệ thuật - Đạo diễn phim -->
+    <div class="col-md-4 mb-4">
+        <div class="career-card card h-100">
+            <img src="https://i.ibb.co/ynpBSRqS/DDDA-1f-308a211b39.jpg" class="card-img-top" alt="Đạo diễn phim">
+            <div class="card-body">
+                <h5 class="card-title">Đạo diễn phim</h5>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge bg-primary">20-100+ triệu</span>
+                    <span class="badge bg-warning text-dark">Độ hot: Cạnh tranh</span>
+                </div>
+                <p class="card-text">Sáng tạo và chỉ đạo sản xuất các tác phẩm điện ảnh.</p>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Tốt nghiệp điện ảnh</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Khiếu nghệ thuật bẩm sinh</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Kinh nghiệm làm phim</li>
+                </ul>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="https://glints.com/vn/blog/dao-dien-la-gi/" target="_blank" class="btn btn-outline-secondary w-100">
+                    Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    </div>
+  </div>
+
+ <!-- Kỹ thuật -->
+<div class="tab-pane container fade" id="engineering">
+    <div class="row">
+        <!-- Kỹ sư cơ khí -->
+        <div class="col-md-4 mb-4">
+            <div class="career-card card h-100">
+                <img src="https://i.ibb.co/FbMTSmTX/photo-1689837948200-16898379482491032272507.webp?text=Cơ+khí" class="card-img-top" alt="Cơ khí">
+                <div class="card-body">
+                    <h5 class="card-title">Kỹ sư Cơ khí</h5>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge bg-primary">12-35 triệu</span>
+                        <span class="badge bg-success">Nhu cầu ổn định</span>
+                    </div>
+                    <p class="card-text">Thiết kế, chế tạo và bảo trì hệ thống cơ khí, máy móc.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Bằng kỹ sư cơ khí</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Kỹ năng CAD/CAM</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Hiểu biết vật liệu</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="https://www.topcv.vn/ky-su-co-khi-la-gi" target="_blank" class="btn btn-outline-primary w-100">
+                        Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Kỹ sư điện tử -->
+        <div class="col-md-4 mb-4">
+            <div class="career-card card h-100">
+                <img src="https://i.ibb.co/rK6kfhxx/pngtree-electrician-professional-illustration-image-1462526.jpg?text=Điện+tử" class="card-img-top" alt="Điện tử">
+                <div class="card-body">
+                    <h5 class="card-title">Kỹ sư Điện tử</h5>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge bg-primary">15-40 triệu</span>
+                        <span class="badge bg-success">Xu hướng IoT</span>
+                    </div>
+                    <p class="card-text">Thiết kế, phát triển các hệ thống điện tử, vi mạch.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Bằng kỹ sư điện tử</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Kiến thức vi điều khiển</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Kinh nghiệm thực hành</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="https://p69.com.vn/vi/ky-su-dien-la-gi/" target="_blank" class="btn btn-outline-primary w-100">
+                        Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+<!-- Kỹ thuật - Kỹ sư robot (Thay thế Kỹ sư điện tử) -->
+    <div class="col-md-4 mb-4">
+        <div class="career-card card h-100">
+            <img src="https://i.ibb.co/xqghVrxh/funix-kysu-robot2.png" class="card-img-top" alt="Kỹ sư robot">
+            <div class="card-body">
+                <h5 class="card-title">Kỹ sư Robot</h5>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge bg-primary">25-80 triệu</span>
+                    <span class="badge bg-danger">Độ hot: Cực cao</span>
+                </div>
+                <p class="card-text">Thiết kế, lập trình và bảo trì hệ thống robot công nghiệp.</p>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Bằng kỹ sư cơ điện tử/robot</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Thành thạo C++/ROS</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i>Kinh nghiệm automation</li>
+                </ul>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="https://www.topcv.vn/ky-su-robot-la-gi#:~:text=K%E1%BB%B9%20s%C6%B0%20robot%20tham%20gia,c%C3%A1c%20nhi%E1%BB%87m%20v%E1%BB%A5%20kh%C3%A1c%20nhau." target="_blank" class="btn btn-outline-dark w-100">
+                    Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+    
+
+<!-- Du lịch - Nhà hàng - Khách sạn -->
+<div class="tab-pane container fade" id="tourism">
+    <div class="row">
+        <!-- Quản lý khách sạn -->
+        <div class="col-md-4 mb-4">
+            <div class="career-card card h-100">
+                <img src="https://i.ibb.co/CK4B3H3q/Nganh-QTKS-1.jpg" class="card-img-top" alt="Quản lý khách sạn">
+                <div class="card-body">
+                    <h5 class="card-title">Quản lý Khách sạn</h5>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge bg-primary">10-30 triệu</span>
+                        <span class="badge bg-success">Nhu cầu cao</span>
+                    </div>
+                    <p class="card-text">Điều hành và quản lý các hoạt động của khách sạn, resort.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Bằng quản trị khách sạn</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Kỹ năng giao tiếp</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Ngoại ngữ tốt</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="https://swinburne-vn.edu.vn/nganh-quan-tri-khach-san/?amp=1" target="_blank" class="btn btn-outline-primary w-100">
+                        Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Hướng dẫn viên du lịch -->
+        <div class="col-md-4 mb-4">
+            <div class="career-card card h-100">
+                <img src="https://i.ibb.co/9mtBB59b/huong-dan-vien-du-lich-la-gi-muc-luong-va-co-hoi-thang-tien-ra-sao-17092737677271831996304-45-0-307.webp" class="card-img-top" alt="Hướng dẫn viên du lịch">
+                <div class="card-body">
+                    <h5 class="card-title">Hướng dẫn viên Du lịch</h5>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge bg-primary">8-25 triệu</span>
+                        <span class="badge bg-success">Linh hoạt</span>
+                    </div>
+                    <p class="card-text">Đón tiếp và hướng dẫn du khách tham quan các điểm du lịch.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Chứng chỉ hướng dẫn viên</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Kiến thức văn hóa</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Ngoại ngữ thành thạo</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="https://dulichsaigon.edu.vn/chuyen-nganh-huong-dan-du-lich/" target="_blank" class="btn btn-outline-primary w-100">
+                        Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Đầu bếp -->
+        <div class="col-md-4 mb-4">
+            <div class="career-card card h-100">
+                <img src="https://i.ibb.co/rRngxJHK/nghe-dau-bep-hien-nay-2.png" class="card-img-top" alt="Đầu bếp">
+                <div class="card-body">
+                    <h5 class="card-title">Đầu bếp chuyên nghiệp</h5>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge bg-primary">12-50 triệu</span>
+                        <span class="badge bg-success">Tay nghề cao</span>
+                    </div>
+                    <p class="card-text">Chế biến món ăn và quản lý bếp tại nhà hàng, khách sạn.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Bằng nghề đầu bếp</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Kinh nghiệm thực tế</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Sáng tạo ẩm thực</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="https://vietgiao.edu.vn/nghe-dau-bep-hien-nay-tuong-lai-va-thuc-te-nhu-nao/" target="_blank" class="btn btn-outline-primary w-100">
+                        Xem chi tiết <i class="fas fa-external-link-alt ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+    <!-- Footer -->
+<footer class="bg-dark text-white py-4">
+    <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-briefcase me-2"></i>HuuThanh</h5>
+                    <p class="mt-3">Hệ thống hướng nghiệp ứng dụng công nghệ STEM</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>Liên kết</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="index.html" class="text-white">Trang chủ</a></li>
+                        <li><a href="careers.html" class="text-white">Ngành nghề</a></li>
+                        <li><a href="Khaosat.html" class="text-white">Trắc nghiệm</a></li>
+                    </ul>
+                </div>
+<div id="stats" style="font-size: 14px; color: #555;">
+  Online: <span id="online-count">0</span> |
+  Lượt truy cập: <span id="visit-count">0</span>
+</div>
+                <div class="col-md-3">
+<a href="Rate.html">
+  <button style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer;">
+    Đánh giá - Phản hồi
+  </button>
+</a>
+                    <h5>Liên hệ</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> thanhhuu863@gmail.com</li>
+                        <li><i class="fas fa-phone me-2"></i> (+84) 0393392071</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="text-center">
+                <p class="mb-0">© 2025 HuuThanh. Dự án STEM giáo dục.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Load dữ liệu ngành nghề từ JSON
+        async function loadCareers() {
+            const response = await fetch('data/careers.json');
+            return await response.json();
+        }
+
+        // Hiển thị chi tiết ngành nghề
+        document.querySelectorAll('.career-card .btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const careerTitle = this.closest('.card').querySelector('.card-title').textContent;
+                alert(`Bạn đã chọn xem chi tiết nghề: ${careerTitle}`);
+                // Có thể mở modal hoặc chuyển trang chi tiết
+            });
+        });
+
+        // Khởi tạo tooltip
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    </script>
+</body>
+</html>
