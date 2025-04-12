@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liên Hệ - Thiết Kế Đẹp</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --secondary: #3f37c9;
+      --accent: #4895ef;
+      --light: #f8f9fa;
+      --dark: #212529;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Quicksand', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 600px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      animation: fadeInUp 0.8s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .form-header {
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      color: white;
+      padding: 25px;
+      text-align: center;
+      position: relative;
+    }
+    
+    .form-header h2 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    
+    .form-header p {
+      opacity: 0.9;
+    }
+    
+    .form-header::after {
+      content: '';
+      position: absolute;
+      bottom: -20px;
+      left: 0;
+      width: 100%;
+      height: 20px;
+      background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" fill="white"/><path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" fill="white"/><path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" fill="white"/></svg>');
+      background-size: cover;
+    }
+    
+    .form-body {
+      padding: 30px;
+    }
+    
+    .form-group {
+      margin-bottom: 25px;
+      position: relative;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--dark);
+      transition: all 0.3s;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #e9ecef;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: all 0.3s;
+      background-color: #f8f9fa;
+    }
+    
+    .form-control:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.2);
+      outline: none;
+      background-color: white;
+    }
+    
+    .btn {
+      display: inline-block;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      color: white;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 50px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(67, 97, 238, 0.2);
+    }
+    
+    .btn:active {
+      transform: translateY(-1px);
+    }
+    
+    .btn:disabled {
+      background: #cccccc;
+      transform: none;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+    
+    .btn i {
+      margin-right: 10px;
+    }
+    
+    .btn::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to right, rgba(255,255,255,0.1), rgba(255,255,255,0.3));
+      transform: translateX(-100%);
+      transition: transform 0.5s ease;
+    }
+    
+    .btn:hover::after {
+      transform: translateX(100%);
+    }
+    
+    .success-message {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      background-color: #d4edda;
+      color: #155724;
+      border-radius: 10px;
+      margin-top: 20px;
+      animation: fadeIn 0.5s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .floating-label {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      color: #6c757d;
+      transition: all 0.3s;
+      pointer-events: none;
+    }
+    
+    .form-control:focus + .floating-label,
+    .form-control:not(:placeholder-shown) + .floating-label {
+      top: -10px;
+      left: 10px;
+      font-size: 12px;
+      background-color: white;
+      padding: 0 5px;
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="form-header">
+      <h2><i class="fas fa-paper-plane"></i> Liên Hệ Với Chúng Tôi</h2>
+      <p>Điền thông tin và chúng tôi sẽ phản hồi sớm nhất</p>
+    </div>
+    
+    <div class="form-body">
+      <form id="form">
+        <div class="form-group">
+          <input type="text" name="name" id="name" class="form-control" placeholder=" " required>
+          <label for="name" class="floating-label">Họ và Tên</label>
+        </div>
+        
+        <div class="form-group">
+          <input type="email" name="email" id="email" class="form-control" placeholder=" " required>
+          <label for="email" class="floating-label">Email</label>
+        </div>
+        
+        <div class="form-group">
+          <input type="text" name="title" id="title" class="form-control" placeholder=" " required>
+          <label for="title" class="floating-label">Tiêu Đề</label>
+        </div>
+        
+        <div class="form-group">
+          <input type="text" name="message" id="message" class="form-control" placeholder=" " required>
+          <label for="message" class="floating-label">Nội Dung</label>
+        </div>
+        
+        <button type="submit" id="button" class="btn">
+          <i class="fas fa-paper-plane"></i> Gửi Thông Tin
+        </button>
+      </form>
+      
+      <div id="success-message" class="success-message">
+        <i class="fas fa-check-circle" style="font-size: 24px; margin-bottom: 10px;"></i>
+        <h3>Gửi thành công!</h3>
+        <p>Cảm ơn bạn đã liên hệ, chúng tôi sẽ phản hồi sớm nhất.</p>
+        <div style="text-align: center; margin-top: 15px;">
+  <a href="index.html" class="btn" style="max-width: 200px; margin: auto;">
+    <i class="fas fa-home"></i> Trang Chủ
+  </a>
+</div>
+     </div>
+    </div>
+  </div>
+
+  <!-- Load EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  
+  <script>
+    // Khởi tạo EmailJS
+    emailjs.init('k40OHBj0WWmt476d1');
+    
+    // Lấy các phần tử DOM
+    const form = document.getElementById('form');
+    const btn = document.getElementById('button');
+    const successMessage = document.getElementById('success-message');
+    
+    // Xử lý khi form được submit
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      
+      // Đổi trạng thái nút
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang gửi...';
+      btn.disabled = true;
+      
+      // ID dịch vụ và template
+      const serviceID = 'service_pukoc3u';
+      const templateID = 'template_e3uteih';
+      
+      // Gửi email
+      emailjs.sendForm(serviceID, templateID, this)
+        .then(() => {
+          // Hiển thị thông báo thành công
+          form.style.display = 'none';
+          successMessage.style.display = 'block';
+          
+          // Thêm hiệu ứng confetti
+          createConfetti();
+         const counterRef = db.ref('submissions/count');
+counterRef.transaction(function(currentValue) {
+  return (currentValue || 0) + 1;
+}).then(result => {
+  const newCount = result.snapshot.val();
+  document.getElementById('success-message').innerHTML += `<p>Bạn là người thứ <strong>${newCount}</strong> tham gia đánh giá.</p>`;
+});
+        })
+        .catch((err) => {
+          console.error('Lỗi:', err);
+          alert('Có lỗi xảy ra: ' + err.text);
+          btn.innerHTML = '<i class="fas fa-paper-plane"></i> Gửi Thông Tin';
+          btn.disabled = false;
+        });
+    });
+    
+    // Tạo hiệu ứng confetti
+    function createConfetti() {
+      const confettiSettings = {
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      };
+      
+      // Sử dụng thư viện confetti nếu có
+      if (typeof confetti === 'function') {
+        confetti(confettiSettings);
+      } else {
+        // Fallback nếu không có thư viện
+        console.log('Confetti effect would play here');
+      }
+    }
+    
+    // Tải thư viện confetti nếu muốn
+    function loadConfetti() {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js';
+      document.head.appendChild(script);
+    }
+    
+    // Tự động tải confetti khi trang load
+    window.addEventListener('load', loadConfetti);
+  </script>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+<script>
+  // Cấu hình Firebase
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "people-c0971.firebaseapp.com",
+    databaseURL: "https://people-c0971-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "people-c0971",
+    storageBucket: "people-c0971.appspot.com",
+    messagingSenderId: "SENDER_ID",
+    appId: "APP_ID"
+  };
+
+  // Khởi tạo Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+</script>
+</body>
+</html>
