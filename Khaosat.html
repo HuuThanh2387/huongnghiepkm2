@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerGuide - Trắc nghiệm hướng nghiệp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .quiz-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        .question-card {
+            border-left: 5px solid var(--secondary);
+            transition: all 0.3s;
+            display: none; /* Ẩn tất cả câu hỏi ban đầu */
+ div id="stats" style="font-size: 14px; color: #555;">
+  Online: <span id="online-count">0</span> |
+  Lượt truy cập: <span id="visit-count">0</span>
+</div>       }
+        .question-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .option-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: 1px solid #dee2e6;
+        }
+        .option-item:hover {
+            background-color: #f1f8ff;
+        }
+        .option-item.selected {
+            background-color: #e1f0ff;
+            border-color: var(--secondary);
+        }
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+        .nav-tabs .nav-link.active {
+            color: var(--secondary);
+            font-weight: bold;
+        }
+        .cursor-pointer {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="quiz-header py-4 mb-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-clipboard-list me-2"></i>Trắc nghiệm hướng nghiệp
+            </h1>
+            <div class="text-end">
+                <span class="badge bg-light text-dark">
+                    <i class="fas fa-question-circle me-1"></i>
+                    <span id="current-question">1</span>/50
+                </span>
+            </div>
+        </div>
+    </div>
+</header> 
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import {
+    getDatabase,
+    ref,
+    onValue,
+    set,
+    push,
+    remove,
+    onDisconnect,
+    serverTimestamp,
+    runTransaction
+  } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+  const firebaseConfig = {
+    databaseURL: "https://people-c0971-default-rtdb.asia-southeast1.firebasedatabase.app",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // Người online
+  const userRef = push(ref(db, "onlineUsers"));
+  await set(userRef, { onlineAt: serverTimestamp() });
+  onDisconnect(userRef).remove();
+
+  onValue(ref(db, "onlineUsers"), (snapshot) => {
+    document.getElementById("online-count").textContent = snapshot.size;
+  });
+
+  // Lượt truy cập
+  const countRef = ref(db, "visitCount");
+  runTransaction(countRef, (current) => (current || 0) + 1);
+
+  onValue(countRef, (snapshot) => {
+    document.getElementById("visit-count").textContent = snapshot.val() || 0;
+  });
+</script>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <i class="fas fa-clipboard-list me-2"></i>Trắc nghiệm
+        </a>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">Trang chủ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="careers.html">Cơ hội nghề nghiệp</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+    <!-- Main Content -->
+    <main class="container mb-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <!-- Progress Bar -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <small>Tiến trình</small>
+                        <small><span id="progress-percent">2</span>%</small>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div id="quiz-progress" class="progress-bar bg-primary" role="progressbar" style="width: 2%"></div>
+                    </div>
+                </div> 
+
+                <!-- Question Navigation Tabs -->
+                <ul class="nav nav-tabs mb-4" id="questionTabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#part1">Phần 1: Sở thích</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#part2">Phần 2: Năng lực</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#part3">Phần 3: Tính cách</a>
+                    </li>
+                </ul> 
+
+                <!-- Questions Container -->
+                <div class="tab-content" id="questionContent">
+                    <!-- Part 1: Interests -->
+                    <div class="tab-pane fade show active" id="part1">
+                        <!-- Các câu hỏi sẽ được thêm bằng JavaScript -->
+                    </div> 
+
+                    <!-- Part 2: Abilities -->
+                    <div class="tab-pane fade" id="part2">
+                        <!-- Các câu hỏi sẽ được thêm bằng JavaScript -->
+                    </div> 
+
+                    <!-- Part 3: Personality -->
+                    <div class="tab-pane fade" id="part3">
+                        <!-- Các câu hỏi sẽ được thêm bằng JavaScript -->
+                    </div>
+                </div> 
+
+                <!-- Navigation Buttons -->
+                <div class="d-flex justify-content-between mt-4">
+                    <button id="prev-btn" class="btn btn-outline-primary" disabled>
+                        <i class="fas fa-arrow-left me-2"></i>Trước
+                    </button>
+                    <button id="next-btn" class="btn btn-primary">
+                        Tiếp theo <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                    <button id="submit-btn" class="btn btn-success" style="display: none;">
+                        <i class="fas fa-paper-plane me-2"></i>Xem kết quả
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main> 
+
+    <!-- Result Modal -->
+    <div class="modal fade" id="resultModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Kết quả hướng nghiệp</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-award display-1 text-warning"></i>
+                        <h3 class="mt-3">Nhóm ngành phù hợp nhất với bạn</h3>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border-success h-100">
+                                <div class="card-header bg-success text-white">
+                                    <h4 id="top-career" class="mb-0">Công nghệ thông tin</h4>
+                                </div>
+                                <div class="card-body">
+                                    <p id="career-description">Bạn có tư duy logic tốt, khả năng phân tích vấn đề và yêu thích công nghệ...</p>
+                                    <hr>
+                                    <h5>Mức lương trung bình:</h5>
+                                    <p id="career-salary">15 - 50 triệu VNĐ</p>
+                                    <h5>Các nghề tiêu biểu:</h5>
+                                    <ul id="career-jobs" class="list-unstyled">
+                                        <li><i class="fas fa-check-circle text-success me-2"></i>Lập trình viên Full-stack</li>
+                                        <li><i class="fas fa-check-circle text-success me-2"></i>Kỹ sư phần mềm</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Biểu đồ đánh giá năng lực</h5>
+                            <canvas id="skillChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <!-- PHẦN MỚI (THÊM NÚT XEM CHI TIẾT NGÀNH NGHỀ) -->
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+    <a href="careers.html" class="btn btn-primary">
+        <i class="fas fa-star me-2"></i>Xem chi tiết ngành nghề
+    </a>
+</div>
+            </div>
+        </div>
+    </div> 
+
+    <!-- Bootstrap & Chart JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Quiz Script -->
+    <script>
+        // Cấu trúc dữ liệu câu hỏi
+        const quizData = {
+            questions: [
+               {
+                    id: 1,
+                    text: "Hoạt động nào khiến bạn hứng thú nhất?",
+                    options: [
+                        { value: "technology", text: "Lập trình/Thiết kế phần mềm" },
+                        { value: "education", text: "Dạy kèm người khác" },
+                        { value: "engineering", text: "Tháo lắp thiết bị điện tử" },
+                        { value: "arts", text: "Vẽ tranh/Chụp ảnh" },
+                        { value: "health", text: "Chăm sóc người ốm" }
+                    ],
+                    category: "interests"
+                },
+        {
+            id: 2,
+            text: "Bạn thích đọc loại sách nào?",
+            options: [
+                { value: "technology", text: "Khoa học công nghệ" },
+                { value: "education", text: "Tâm lý giáo dục" },
+                { value: "engineering", text: "Tạp chí kỹ thuật" },
+                { value: "business", text: "Quản trị kinh doanh" },
+                { value: "health", text: "Y học sức khỏe" }
+            ],
+            category: "interests"
+        },
+       {
+    id: 3,
+    text: "Bạn thích tham gia hoạt động ngoại khóa nào nhất?",
+    options: [
+        { value: "technology", text: "Câu lạc bộ Robotics/Lập trình" },
+        { value: "education", text: "Dạy học tình nguyện" },
+        { value: "engineering", text: "Thử nghiệm mô hình cơ khí" },
+        { value: "arts", text: "Vẽ tranh/Biểu diễn nghệ thuật" },
+        { value: "health", text: "Hiến máu/Chăm sóc cộng đồng" }
+    ],
+    category: "interests"
+},
+{
+    id: 4,
+    text: "Chương trình TV bạn hay xem nhất?",
+    options: [
+        { value: "technology", text: "Phim tài liệu về công nghệ tương lai" },
+        { value: "education", text: "Chương trình giáo dục trẻ em" },
+        { value: "engineering", text: "How it's made (Quy trình sản xuất)" },
+        { value: "business", text: "Shark Tank/Chương trình khởi nghiệp" },
+        { value: "health", text: "Bác sĩ riêng/Bảo vệ sức khỏe" }
+    ],
+    category: "interests"
+},
+{
+    id: 5,
+    text: "Bạn thường chọn môn học nào khi có thể?",
+    options: [
+        { value: "technology", text: "Tin học ứng dụng" },
+        { value: "education", text: "Tâm lý học" },
+        { value: "engineering", text: "Vật lý kỹ thuật" },
+        { value: "arts", text: "Mỹ thuật/Nhiếp ảnh" },
+        { value: "health", text: "Sinh học/Y học" }
+    ],
+    category: "interests"
+},
+{
+    id: 6,
+    text: "Bạn tự tin nhất với kỹ năng nào?",
+    options: [
+        { value: "technology", text: "Giải quyết vấn đề bằng phần mềm" },
+        { value: "education", text: "Giảng giải kiến thức rõ ràng" },
+        { value: "engineering", text: "Sửa chữa thiết bị cơ khí" },
+        { value: "health", text: "Sơ cứu y tế cơ bản" },
+        { value: "arts", text: "Thiết kế hình ảnh ấn tượng" }
+    ],
+    category: "abilities"
+},
+{
+    id: 7,
+    text: "Bạn làm tốt nhất việc gì trong nhóm?",
+    options: [
+        { value: "technology", text: "Phân tích hệ thống" },
+        { value: "education", text: "Hướng dẫn thành viên mới" },
+        { value: "engineering", text: "Vận hành máy móc" },
+        { value: "business", text: "Lập kế hoạch kinh doanh" },
+        { value: "health", text: "Chăm sóc người cần giúp đỡ" }
+    ],
+    category: "abilities"
+},
+{
+    id: 8,
+    text: "Khả năng nào của bạn được khen nhiều nhất?",
+    options: [
+        { value: "technology", text: "Tư duy logic" },
+        { value: "education", text: "Diễn đạt dễ hiểu" },
+        { value: "engineering", text: "Khéo léo sửa dụng cụ" },
+        { value: "arts", text: "Óc thẩm mỹ cao" },
+        { value: "business", text: "Đàm phán thuyết phục" }
+    ],
+    category: "abilities"
+},
+{
+    id: 9,
+    text: "Bạn học nhanh nhất khi:",
+    options: [
+        { value: "technology", text: "Thực hành qua dự án thực tế" },
+        { value: "education", text: "Được giảng giải từng bước" },
+        { value: "engineering", text: "Quan sát máy móc hoạt động" },
+        { value: "health", text: "Xem video minh họa y khoa" },
+        { value: "arts", text: "Tự do sáng tạo không khuôn mẫu" }
+    ],
+    category: "abilities"
+},
+{
+    id: 10,
+    text: "Bạn xử lý tình huống khó bằng cách:",
+    options: [
+        { value: "technology", text: "Phân tích dữ liệu để tìm giải pháp" },
+        { value: "education", text: "Tham khảo ý kiến chuyên gia" },
+        { value: "engineering", text: "Thử nghiệm từng phương án" },
+        { value: "business", text: "Đánh giá rủi ro/lợi ích" },
+        { value: "health", text: "Bình tĩnh theo quy trình chuẩn" }
+    ],
+    category: "abilities"
+},
+{
+    id: 11,
+    text: "Bạn thường phản ứng thế nào khi gặp vấn đề phức tạp?",
+    options: [
+        { value: "technology", text: "Phân tích từng bước để tìm giải pháp logic" },
+        { value: "education", text: "Tìm kiếm hướng dẫn từ sách vở/mentor" },
+        { value: "engineering", text: "Thử nghiệm các cách tiếp cận thực tế" },
+        { value: "business", text: "Đánh giá rủi ro và lợi ích tiềm năng" },
+        { value: "arts", text: "Tìm cảm hứng từ góc nhìn sáng tạo" }
+    ],
+    category: "personality"
+},
+{
+    id: 12,
+    text: "Môi trường làm việc lý tưởng của bạn là:",
+    options: [
+        { value: "technology", text: "Không gian yên tĩnh để tập trung sâu" },
+        { value: "education", text: "Nơi có thể tương tác với nhiều người" },
+        { value: "engineering", text: "Xưởng thực hành đầy dụng cụ" },
+        { value: "health", text: "Môi trường có quy trình rõ ràng" },
+        { value: "arts", text: "Không gian mở để tự do sáng tạo" }
+    ],
+    category: "personality"
+},
+{
+    id: 13,
+    text: "Bạn được mô tả là người thế nào trong nhóm?",
+    options: [
+        { value: "technology", text: "Người giải quyết vấn đề" },
+        { value: "education", text: "Người hướng dẫn kiên nhẫn" },
+        { value: "engineering", text: "Người thực thi thực tế" },
+        { value: "business", text: "Người đưa ra chiến lược" },
+        { value: "health", text: "Người chăm sóc tỉ mỉ" }
+    ],
+    category: "personality"
+},
+{
+    id: 14,
+    text: "Điều gì khiến bạn hài lòng nhất trong công việc?",
+    options: [
+        { value: "technology", text: "Tạo ra sản phẩm công nghệ đột phá" },
+        { value: "education", text: "Thấy người khác tiến bộ nhờ mình" },
+        { value: "engineering", text: "Sửa chữa/thiết kế thành công thiết bị" },
+        { value: "arts", text: "Được thể hiện phong cách cá nhân" },
+        { value: "health", text: "Giúp ai đó cải thiện sức khỏe" }
+    ],
+    category: "personality"
+},
+{
+    id: 15,
+    text: "Bạn xem trọng nhất yếu tố nào ở công việc?",
+    options: [
+        { value: "technology", text: "Được tiếp cận công nghệ mới" },
+        { value: "education", text: "Có cơ hội phát triển cộng đồng" },
+        { value: "engineering", text: "Được làm việc với hệ thống cụ thể" },
+        { value: "business", text: "Tiềm năng thăng tiến tài chính" },
+        { value: "health", text: "Ý nghĩa nhân văn trong công việc" }
+    ],
+    category: "personality"
+},
+{
+    id: 16,
+    text: "Bạn thường giải quyết các vấn đề kỹ thuật bằng cách nào?",
+    options: [
+        { value: "technology", text: "Viết code/script để tự động hóa" },
+        { value: "education", text: "Tìm tài liệu hướng dẫn chi tiết" },
+        { value: "engineering", text: "Tháo lắp và kiểm tra từng bộ phận" },
+        { value: "business", text: "Phân tích SWOT để tìm giải pháp tối ưu" },
+        { value: "health", text: "Tuân thủ theo quy trình chuẩn y tế" }
+    ],
+    category: "practical_skills"
+},
+{
+    id: 17,
+    text: "Khi hướng dẫn người khác, bạn thường:",
+    options: [
+        { value: "technology", text: "Làm demo trực quan trên máy tính" },
+        { value: "education", text: "Chia nhỏ thành các bước đơn giản" },
+        { value: "engineering", text: "Cho xem bản vẽ kỹ thuật minh họa" },
+        { value: "arts", text: "Dùng hình ảnh/ví dụ sinh động" },
+        { value: "health", text: "Kiểm tra lại từng bước thực hiện" }
+    ],
+    category: "practical_skills"
+},
+{
+    id: 18,
+    text: "Bạn làm gì khi phải học kỹ năng mới?",
+    options: [
+        { value: "technology", text: "Tìm tutorial trên GitHub/Stack Overflow" },
+        { value: "education", text: "Đăng ký khóa học có hệ thống" },
+        { value: "engineering", text: "Quan sát người có kinh nghiệm làm trước" },
+        { value: "business", text: "Phân tích case study thực tế" },
+        { value: "health", text: "Thực hành trên mô hình/mô phỏng" }
+    ],
+    category: "practical_skills"
+},
+{
+    id: 19,
+    text: "Khi làm việc nhóm, bạn đóng vai trò gì?",
+    options: [
+        { value: "technology", text: "Người xử lý các vấn đề kỹ thuật" },
+        { value: "education", text: "Người tổng hợp ý kiến và giải thích" },
+        { value: "engineering", text: "Người phụ trách thiết bị/vật tư" },
+        { value: "arts", text: "Người lên ý tưởng sáng tạo" },
+        { value: "health", text: "Người kiểm tra chất lượng công đoạn" }
+    ],
+    category: "practical_skills"
+},
+{
+    id: 20,
+    text: "Điều gì giúp bạn ghi nhớ công việc tốt nhất?",
+    options: [
+        { value: "technology", text: "Sơ đồ thuật toán/flowchart" },
+        { value: "education", text: "Ghi chú hệ thống bằng sơ đồ tư duy" },
+        { value: "engineering", text: "Bản vẽ kỹ thuật chi tiết" },
+        { value: "business", text: "Biểu đồ dữ liệu và số liệu" },
+        { value: "health", text: "Danh sách kiểm tra (checklist)" }
+    ],
+    category: "practical_skills"
+},
+
+{
+    id: 21,
+    text: "Yếu tố nào quan trọng nhất khi bạn chọn nghề?",
+    options: [
+        { value: "technology", text: "Được tiếp cận công nghệ tiên tiến" },
+        { value: "education", text: "Có cơ hội chia sẻ kiến thức" },
+        { value: "engineering", text: "Được làm việc với hệ thống thực tế" },
+        { value: "health", text: "Mang lại sức khỏe cho cộng đồng" },
+        { value: "arts", text: "Thể hiện được cá tính sáng tạo" }
+    ],
+    category: "work_values"
+},
+{
+    id: 22,
+    text: "Bạn mong muốn môi trường làm việc như thế nào?",
+    options: [
+        { value: "technology", text: "Năng động, tiếp cận xu hướng mới" },
+        { value: "education", text: "Ổn định, có tính hệ thống" },
+        { value: "engineering", text: "Thực tế, được thao tác trực tiếp" },
+        { value: "business", text: "Cạnh tranh, có cơ hội thăng tiến" },
+        { value: "health", text: "An toàn, tuân thủ quy trình" }
+    ],
+    category: "work_values"
+},
+{
+    id: 23,
+    text: "Điều gì làm bạn hài lòng nhất ở công việc?",
+    options: [
+        { value: "technology", text: "Giải quyết được bài toán phức tạp" },
+        { value: "education", text: "Thấy học trò/người học tiến bộ" },
+        { value: "engineering", text: "Tạo ra sản phẩm hữu hình" },
+        { value: "arts", text: "Được công chúng đánh giá cao" },
+        { value: "health", text: "Cải thiện chất lượng sống người khác" }
+    ],
+    category: "work_values"
+},
+{
+    id: 24,
+    text: "Bạn sẵn sàng làm gì để thành công trong nghề?",
+    options: [
+        { value: "technology", text: "Liên tục học công nghệ mới" },
+        { value: "education", text: "Kiên nhẫn với nhiều đối tượng" },
+        { value: "engineering", text: "Làm việc trong môi trường khắc nghiệt" },
+        { value: "business", text: "Chấp nhận rủi ro cao" },
+        { value: "health", text: "Làm ca kíp không ổn định" }
+    ],
+    category: "work_values"
+},
+{
+    id: 25,
+    text: "Bạn đánh giá cao điều gì ở đồng nghiệp?",
+    options: [
+        { value: "technology", text: "Tư duy logic, khả năng debug" },
+        { value: "education", text: "Truyền đạt rõ ràng, kiên nhẫn" },
+        { value: "engineering", text: "Tỉ mỉ, đúng quy trình kỹ thuật" },
+        { value: "arts", text: "Óc sáng tạo độc đáo" },
+        { value: "health", text: "Bình tĩnh trong tình huống khẩn cấp" }
+    ],
+    category: "work_values"
+},
+{
+    id: 26,
+    text: "Khi gặp một thiết bị lỗi, bạn sẽ:",
+    options: [
+        { value: "technology", text: "Tìm hiểu nguyên lý hoạt động để sửa" },
+        { value: "education", text: "Xem hướng dẫn sử dụng chi tiết" },
+        { value: "engineering", text: "Tháo ra kiểm tra từng bộ phận" },
+        { value: "business", text: "Tính toán chi phí sửa chữa vs mua mới" },
+        { value: "health", text: "Liên hệ chuyên gia để đảm bảo an toàn" }
+    ],
+    category: "scenarios"
+},
+{
+    id: 27,
+    text: "Khi đồng nghiệp không hiểu ý bạn, bạn sẽ:",
+    options: [
+        { value: "technology", text: "Vẽ sơ đồ/quy trình để minh họa" },
+        { value: "education", text: "Kiên nhẫn giải thích bằng ví dụ" },
+        { value: "engineering", text: "Làm mẫu trực quan" },
+        { value: "arts", text: "Dùng hình ảnh/ẩn dụ sinh động" },
+        { value: "health", text: "Chỉ dẫn từng bước một cách bài bản" }
+    ],
+    category: "scenarios"
+},
+{
+    id: 28,
+    text: "Khi phải ra quyết định quan trọng, bạn dựa vào:",
+    options: [
+        { value: "technology", text: "Phân tích dữ liệu và bằng chứng" },
+        { value: "education", text: "Kinh nghiệm của người đi trước" },
+        { value: "engineering", text: "Kết quả thử nghiệm thực tế" },
+        { value: "business", text: "Phân tích SWOT và rủi ro" },
+        { value: "health", text: "Quy trình chuẩn và an toàn" }
+    ],
+    category: "scenarios"
+},
+{
+    id: 29,
+    text: "Khi phải học kỹ năng mới nhanh chóng, bạn sẽ:",
+    options: [
+        { value: "technology", text: "Tìm tutorial trực tuyến chất lượng" },
+        { value: "education", text: "Hỏi mentor có kinh nghiệm" },
+        { value: "engineering", text: "Thực hành ngay trên thiết bị thật" },
+        { value: "arts", text: "Quan sát và bắt chước người giỏi" },
+        { value: "health", text: "Tuân theo checklist hướng dẫn" }
+    ],
+    category: "scenarios"
+},
+{
+    id: 30,
+    text: "Khi công việc trở nên quá tải, bạn sẽ:",
+    options: [
+        { value: "technology", text: "Viết script tự động hóa công đoạn" },
+        { value: "education", text: "Sắp xếp lại ưu tiên và lịch trình" },
+        { value: "engineering", text: "Kiểm tra lại quy trình làm việc" },
+        { value: "business", text: "Đàm phán deadline hoặc outsourcing" },
+        { value: "health", text: "Tuân thủ nghiêm ngặt quy trình an toàn" }
+    ],
+    category: "scenarios"
+},
+{
+    id: 31,
+    text: "Bạn sẽ xử lý thế nào khi công nghệ mới làm lỗi hệ thống của bạn?",
+    options: [
+        { value: "technology", text: "Debug từng module để tìm root cause" },
+        { value: "education", text: "Tìm tài liệu đào tạo về công nghệ mới" },
+        { value: "engineering", text: "Thử nghiệm trên môi trường sandbox trước" },
+        { value: "business", text: "Đánh giá thiệt hại và lập kế hoạch khắc phục" },
+        { value: "health", text: "Áp dụng quy trình rollback an toàn" }
+    ],
+    category: "challenges"
+},
+{
+    id: 32,
+    text: "Khi học trò/đồng nghiệp không hiểu bài dù đã giải thích nhiều lần?",
+    options: [
+        { value: "technology", text: "Tạo tool minh họa trực quan" },
+        { value: "education", text: "Đổi phương pháp dạy phù hợp học viên" },
+        { value: "engineering", text: "Cho thực hành trực tiếp trên thiết bị" },
+        { value: "arts", text: "Dùng phép ẩn dụ/liên tưởng sáng tạo" },
+        { value: "health", text: "Kiểm tra lại từng bước hiểu biết" }
+    ],
+    category: "challenges"
+},
+{
+    id: 33,
+    text: "Khi phải làm việc với khối lượng công việc áp lực cao?",
+    options: [
+        { value: "technology", text: "Lập trình tự động hóa các task lặp lại" },
+        { value: "education", text: "Phân loại và ưu tiên công việc hợp lý" },
+        { value: "engineering", text: "Tối ưu quy trình làm việc" },
+        { value: "business", text: "Delegating cho các thành viên phù hợp" },
+        { value: "health", text: "Tuân thủ nghiêm ngặt quy trình tiêu chuẩn" }
+    ],
+    category: "challenges"
+},
+{
+    id: 34,
+    text: "Khi phải đưa ra quyết định nhanh mà thiếu dữ liệu?",
+    options: [
+        { value: "technology", text: "Dựa trên pattern từ các case tương tự" },
+        { value: "education", text: "Tham khảo ý kiến chuyên gia nhanh" },
+        { value: "engineering", text: "Ưu tiên giải pháp an toàn tối thiểu" },
+        { value: "business", text: "Đánh giá rủi ro thấp nhất" },
+        { value: "health", text: "Áp dụng protocol khẩn cấp" }
+    ],
+    category: "challenges"
+},
+{
+    id: 35,
+    text: "Khi gặp tình huống chưa có trong sách vở?",
+    options: [
+        { value: "technology", text: "Reverse engineering để phân tích" },
+        { value: "education", text: "Ghi nhận case study để sau phân tích" },
+        { value: "engineering", text: "Thử nghiệm các giải pháp thực tế" },
+        { value: "arts", text: "Sáng tạo giải pháp đột phá" },
+        { value: "health", text: "Áp dụng nguyên tắc y đức cơ bản" }
+    ],
+    category: "challenges"
+},
+{
+    id: 36,
+    text: "Khi phát hiện sai sót trong sản phẩm đã bàn giao, bạn sẽ:",
+    options: [
+        { value: "technology", text: "Lập tức thông báo và đề xuất bản fix" },
+        { value: "education", text: "Chủ động liên hệ để hướng dẫn lại" },
+        { value: "engineering", text: "Kiểm tra toàn bộ hệ thống liên quan" },
+        { value: "business", text: "Đánh giá mức độ ảnh hưởng tới khách hàng" },
+        { value: "health", text: "Báo cáo ngay theo quy trình y tế" }
+    ],
+    category: "ethics"
+},
+{
+    id: 37,
+    text: "Khi đồng nghiệp vi phạm quy trình an toàn, bạn sẽ:",
+    options: [
+        { value: "technology", text: "Chỉ ra lỗi và đề xuất giải pháp kỹ thuật" },
+        { value: "education", text: "Giải thích hậu quả có thể xảy ra" },
+        { value: "engineering", text: "Hướng dẫn lại thao tác chuẩn" },
+        { value: "arts", text: "Góp ý theo cách giữ thể diện" },
+        { value: "health", text: "Ngăn chặn ngay và báo cáo cấp trên" }
+    ],
+    category: "ethics"
+},
+{
+    id: 38,
+    text: "Khi bị yêu cầu làm trái quy định để hoàn thành deadline?", 
+    options: [
+        { value: "technology", text: "Kiên quyết tuân thủ tiêu chuẩn chất lượng" },
+        { value: "education", text: "Giải thích hậu quả về lâu dài" },
+        { value: "engineering", text: "Đề xuất giải pháp an toàn thay thế" },
+        { value: "business", text: "Phân tích rủi ro pháp lý rõ ràng" },
+        { value: "health", text: "Tuyệt đối từ chối vì tính mạng con người" }
+    ],
+    category: "ethics"
+},
+{
+    id: 39,
+    text: "Khi phát hiện bí mật công ty bị rò rỉ?",
+    options: [
+        { value: "technology", text: "Khoá ngay các tài khoản nghi ngờ" },
+        { value: "education", text: "Báo cáo ban quản lý để xử lý" },
+        { value: "engineering", text: "Kiểm tra hệ thống bảo mật vật lý" },
+        { value: "business", text: "Đánh giá thiệt hại kinh doanh" },
+        { value: "health", text: "Tuân thủ luật bảo mật thông tin bệnh nhân" }
+    ],
+    category: "ethics"
+},
+{
+    id: 40,
+    text: "Khi nhận thấy sản phẩm có thể gây hại cho cộng đồng?",
+    options: [
+        { value: "technology", text: "Kiểm tra lại thuật toán để tìm lỗi" },
+        { value: "education", text: "Cảnh báo công khai về rủi ro" },
+        { value: "engineering", text: "Đề xuất thu hồi sản phẩm" },
+        { value: "arts", text: "Sử dụng nghệ thuật để nâng cao nhận thức" },
+        { value: "health", text: "Báo cáo cơ quan chức năng ngay lập tức" }
+    ],
+    category: "ethics"
+},
+  
+{
+    id: 41,
+    text: "Bạn nghĩ kỹ năng nào sẽ quan trọng nhất trong 10 năm tới?",
+    options: [
+        { value: "technology", text: "Lập trình AI/Blockchain" },
+        { value: "education", text: "Khả năng dạy học đa phương tiện" },
+        { value: "engineering", text: "Vận hành robot công nghiệp" },
+        { value: "health", text: "Phân tích dữ liệu y tế" },
+        { value: "arts", text: "Sáng tạo nội dung số" }
+    ],
+    category: "future_trends"
+},
+{
+    id: 42,
+    text: "Bạn sẽ ứng phó thế nào với sự thay đổi công nghệ nhanh?",
+    options: [
+        { value: "technology", text: "Tự động cập nhật công nghệ mới hàng tháng" },
+        { value: "education", text: "Tham gia các khóa đào tạo liên tục" },
+        { value: "engineering", text: "Nâng cấp hệ thống theo chu kỳ" },
+        { value: "business", text: "Đầu tư vào R&D" },
+        { value: "health", text: "Áp dụng tiêu chuẩn quốc tế linh hoạt" }
+    ],
+    category: "future_trends"
+},
+{
+    id: 43,
+    text: "Môi trường làm việc tương lai bạn mong đợi là gì?",
+    options: [
+        { value: "technology", text: "Làm việc từ xa với công cụ ảo hóa" },
+        { value: "education", text: "Lớp học thông minh kết hợp VR" },
+        { value: "engineering", text: "Nhà máy tự động hóa toàn phần" },
+        { value: "arts", text: "Không gian sáng tạo đa thực tế" },
+        { value: "health", text: "Bệnh viện thông minh với IoT" }
+    ],
+    category: "future_trends"
+},
+{
+    id: 44,
+    text: "Bạn sẽ chuẩn bị gì cho công việc tương lai?",
+    options: [
+        { value: "technology", text: "Học máy tính lượng tử cơ bản" },
+        { value: "education", text: "Nghiên cứu phương pháp dạy học mới" },
+        { value: "engineering", text: "Lấy chứng chỉ vận hành robot" },
+        { value: "business", text: "Xây dựng hệ thống kinh doanh số" },
+        { value: "health", text: "Học cách sử dụng thiết bị y tế AI" }
+    ],
+    category: "future_trends"
+},
+{
+    id: 45,
+    text: "Đâu là thách thức lớn nhất với nghề nghiệp tương lai?",
+    options: [
+        { value: "technology", text: "Đạo đức trong phát triển AI" },
+        { value: "education", text: "Cá nhân hóa giáo dục hàng loạt" },
+        { value: "engineering", text: "Bảo trì hệ thống phức tạp" },
+        { value: "arts", text: "Bản quyền sáng tạo trong kỷ nguyên số" },
+        { value: "health", text: "Bảo mật dữ liệu bệnh nhân" }
+    ],
+    category: "future_trends"
+},
+{
+    id: 46,
+    text: "Bạn ưu tiên điều gì khi sắp xếp thời gian làm việc?",
+    options: [
+        { value: "technology", text: "Linh hoạt giờ giấc để tập trung sáng tạo" },
+        { value: "education", text: "Cố định lịch dạy rõ ràng cho học viên" },
+        { value: "engineering", text: "Tuân thủ ca làm việc nhà máy" },
+        { value: "business", text: "Ưu tiên các cuộc họp quan trọng" },
+        { value: "health", text: "Theo lịch trực tại bệnh viện" }
+    ],
+    category: "work_life_balance"
+},
+{
+    id: 47,
+    text: "Khi công việc chiếm quá nhiều thời gian cá nhân, bạn sẽ:",
+    options: [
+        { value: "technology", text: "Tự động hóa các task lặp lại" },
+        { value: "education", text: "Đề xuất phân bổ lại giáo án" },
+        { value: "engineering", text: "Yêu cầu bổ sung nhân sự" },
+        { value: "arts", text: "Dành 1 ngày 'detox' sáng tạo" },
+        { value: "health", text: "Xin điều chỉnh ca trực hợp lý" }
+    ],
+    category: "work_life_balance"
+},
+{
+    id: 48,
+    text: "Bạn duy trì sức khỏe tinh thần bằng cách nào?",
+    options: [
+        { value: "technology", text: "Tham gia cộng đồng developer" },
+        { value: "education", text: "Giao lưu với đồng nghiệp cùng nghề" },
+        { value: "engineering", text: "Tham gia workshop kỹ thuật" },
+        { value: "business", text: "Tổ chức teambuilding định kỳ" },
+        { value: "health", text: "Khám sức khỏe tâm lý 6 tháng/lần" }
+    ],
+    category: "work_life_balance"
+},
+{
+    id: 49,
+    text: "Bạn giải tỏa căng thẳng công việc bằng cách:",
+    options: [
+        { value: "technology", text: "Lập trình dự án cá nhân" },
+        { value: "education", text: "Đọc sách phát triển bản thân" },
+        { value: "engineering", text: "Tự chế tạo đồ dùng tại nhà" },
+        { value: "arts", text: "Sáng tác nghệ thuật" },
+        { value: "health", text: "Tập yoga/thiền định" }
+    ],
+    category: "work_life_balance"
+},
+{
+    id: 50,
+    text: "Quan điểm của bạn về làm thêm giờ?",
+    options: [
+        { value: "technology", text: "Chấp nhận nếu dự án quan trọng" },
+        { value: "education", text: "Không ảnh hưởng giờ dạy chính" },
+        { value: "engineering", text: "Theo quy định nhà máy" },
+        { value: "business", text: "Khi có cơ hội thăng tiến" },
+        { value: "health", text: "Chỉ trong trường hợp cấp cứu" }
+    ],
+    category: "work_life_balance"
+}
+            ],
+            careers: {
+                "technology": {
+                    name: "Công nghệ thông tin",
+                    description: "Ngành dành cho người yêu logic, sáng tạo giải pháp kỹ thuật...",
+                    jobs: ["Lập trình viên", "Kỹ sư AI", "Quản trị hệ thống"],
+                    salary: "15-50 triệu"
+                },
+                "education": {
+                    name: "Giáo dục",
+                    description: "Phù hợp với người kiên nhẫn, có khả năng truyền đạt...",
+                    jobs: ["Giáo viên", "Giảng viên", "Tư vấn giáo dục"],
+                    salary: "8-25 triệu"
+                },
+                "engineering": {
+                    name: "Kỹ thuật",
+                    description: "Dành cho người thích máy móc, hệ thống kỹ thuật...",
+                    jobs: ["Kỹ sư cơ khí", "Kỹ sư điện", "Thiết kế CAD"],
+                    salary: "10-40 triệu"
+                },
+                "arts": {
+                    name: "Nghệ thuật",
+                    description: "Dành cho người có óc sáng tạo và cảm thụ nghệ thuật...",
+                    jobs: ["Họa sĩ", "Nhiếp ảnh gia", "Thiết kế đồ họa"],
+                    salary: "8-30 triệu"
+                },
+                "health": {
+                    name: "Y tế",
+                    description: "Phù hợp với người có lòng nhân ái, kiên nhẫn...",
+                    jobs: ["Bác sĩ", "Y tá", "Dược sĩ"],
+                    salary: "10-40 triệu"
+                },
+                "business": {
+                    name: "Kinh doanh",
+                    description: "Dành cho người có tư duy kinh doanh, giao tiếp tốt...",
+                    jobs: ["Quản lý kinh doanh", "Marketing", "Khởi nghiệp"],
+                    salary: "10-50 triệu"
+                }
+            }
+        };
+
+        // Biến toàn cục
+        let currentQuestion = 1;
+        const totalQuestions = quizData.questions.length;
+        let answers = {}; 
+
+        // Khởi tạo sự kiện
+        document.addEventListener('DOMContentLoaded', function() {
+            renderAllQuestions();
+            initQuiz();
+            setupEventListeners();
+        }); 
+
+        function renderAllQuestions() {
+            const part1 = document.getElementById('part1');
+            const part2 = document.getElementById('part2');
+            const part3 = document.getElementById('part3');
+            
+            quizData.questions.forEach((question, index) => {
+                const questionCard = document.createElement('div');
+                questionCard.className = 'question-card card mb-4';
+                questionCard.id = `question-${question.id}`;
+                
+                let optionsHTML = '';
+                question.options.forEach((option, optIndex) => {
+                    optionsHTML += `
+                        <div class="option-item" data-value="${option.value}">
+                            <input type="radio" name="q${question.id}" id="q${question.id}a${optIndex+1}" class="d-none">
+                            <label for="q${question.id}a${optIndex+1}" class="w-100 cursor-pointer">
+                                ${option.text}
+                            </label>
+                        </div>
+                    `;
+                });
+                
+                questionCard.innerHTML = `
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">Câu ${question.id}: ${question.text}</h5>
+                        <div class="option-list">
+                            ${optionsHTML}
+                        </div>
+                    </div>
+                `;
+                
+                // Phân loại câu hỏi vào các phần tương ứng
+                if (question.id <= 15) {
+                    part1.appendChild(questionCard);
+                } else if (question.id <= 30) {
+                    part2.appendChild(questionCard);
+                } else {
+                    part3.appendChild(questionCard);
+                }
+            });
+        }
+
+        function initQuiz() {
+            updateProgress();
+            showCurrentQuestion();
+        } 
+
+        function setupEventListeners() {
+            // Xử lý chọn đáp án
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.option-item')) {
+                    const optionItem = e.target.closest('.option-item');
+                    const questionId = optionItem.closest('.question-card').id.split('-')[1];
+                    const selectedValue = optionItem.getAttribute('data-value');
+                    
+                    // Lưu câu trả lời
+                    answers[`q${questionId}`] = selectedValue;
+                    
+                    // Cập nhật giao diện
+                    optionItem.closest('.option-list').querySelectorAll('.option-item').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    optionItem.classList.add('selected');
+                    
+                    // Kiểm tra nếu đã trả lời hết câu hỏi hiện tại
+                    checkAllQuestionsAnswered();
+                }
+            });
+
+            // Nút "Tiếp theo"
+            document.getElementById('next-btn').addEventListener('click', function() {
+                if (currentQuestion < totalQuestions) {
+                    currentQuestion++;
+                    updateProgress();
+                    showCurrentQuestion();
+                }
+                
+                // Kiểm tra nếu là câu cuối cùng
+                if (currentQuestion === totalQuestions) {
+                    this.style.display = 'none';
+                    document.getElementById('submit-btn').style.display = 'block';
+                }
+                
+                // Kích hoạt nút "Trước"
+                document.getElementById('prev-btn').disabled = false;
+            });
+
+            // Nút "Trước"
+            document.getElementById('prev-btn').addEventListener('click', function() {
+                if (currentQuestion > 1) {
+                    currentQuestion--;
+                    updateProgress();
+                    showCurrentQuestion();
+                    
+                    // Ẩn nút submit nếu không phải câu cuối
+                    document.getElementById('submit-btn').style.display = 'none';
+                    document.getElementById('next-btn').style.display = 'block';
+                }
+                
+                // Vô hiệu hóa nút "Trước" nếu ở câu đầu
+                if (currentQuestion === 1) {
+                    this.disabled = true;
+                }
+            });
+
+            // Nút "Xem kết quả"
+            document.getElementById('submit-btn').addEventListener('click', showResults);
+
+            // Xử lý chuyển tab
+            document.querySelectorAll('.nav-link').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Cập nhật câu hỏi hiện tại dựa trên tab
+                    const tabId = this.getAttribute('href');
+                    if (tabId === '#part1') currentQuestion = 1;
+                    else if (tabId === '#part2') currentQuestion = 16;
+                    else if (tabId === '#part3') currentQuestion = 31;
+                    
+                    updateProgress();
+                    showCurrentQuestion();
+                });
+            });
+        }
+
+        function updateProgress() {
+            // Cập nhật tiến trình
+            const progressPercent = Math.round((currentQuestion / totalQuestions) * 100);
+            document.getElementById('progress-percent').textContent = progressPercent;
+            document.getElementById('quiz-progress').style.width = `${progressPercent}%`;
+            
+            // Cập nhật số câu hỏi hiện tại
+            document.getElementById('current-question').textContent = currentQuestion;
+        }
+
+        function showCurrentQuestion() {
+            // Ẩn tất cả câu hỏi
+            document.querySelectorAll('.question-card').forEach(card => {
+                card.style.display = 'none';
+            });
+            
+            // Hiển thị câu hỏi hiện tại
+            const currentCard = document.getElementById(`question-${currentQuestion}`);
+            if (currentCard) {
+                currentCard.style.display = 'block';
+            }
+            
+            // Khôi phục lựa chọn đã chọn (nếu có)
+            const questionId = `q${currentQuestion}`;
+            if (answers[questionId]) {
+                currentCard.querySelectorAll('.option-item').forEach(item => {
+                    if (item.getAttribute('data-value') === answers[questionId]) {
+                        item.classList.add('selected');
+                    }
+                });
+            }
+        }
+
+        function checkAllQuestionsAnswered() {
+            // Kiểm tra xem câu hỏi hiện tại đã được trả lời chưa
+            const questionId = `q${currentQuestion}`;
+            document.getElementById('next-btn').disabled = !answers[questionId];
+        }
+
+        function showResults() {
+            // Phân tích kết quả
+            const result = analyzeResults();
+            
+            // Hiển thị kết quả
+            document.getElementById('top-career').textContent = result.topCareer.name;
+            document.getElementById('career-description').textContent = result.topCareer.description;
+            document.getElementById('career-salary').textContent = result.topCareer.salary;
+            
+            const jobsList = document.getElementById('career-jobs');
+            jobsList.innerHTML = '';
+            result.topCareer.jobs.forEach(job => {
+                jobsList.innerHTML += `<li><i class="fas fa-check-circle text-success me-2"></i>${job}</li>`;
+            });
+            
+            // Vẽ biểu đồ kỹ năng
+            drawSkillChart(result.skills);
+            
+            // Hiển thị modal kết quả
+            const resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
+            resultModal.show();
+        }
+
+        function analyzeResults() {
+            // Phân tích câu trả lời và trả về kết quả
+            const scores = {
+                technology: 0,
+                arts: 0,
+                health: 0,
+                business: 0,
+                education: 0, 
+                engineering: 0 
+            };
+            
+            // Tính điểm cho từng lĩnh vực
+            for (const questionId in answers) {
+                const answerValue = answers[questionId];
+                if (scores.hasOwnProperty(answerValue)) {
+                    scores[answerValue]++;
+                }
+            }
+            
+            // Xác định ngành có điểm cao nhất
+            let topCareer = 'technology';
+            for (const field in scores) {
+                if (scores[field] > scores[topCareer]) {
+                    topCareer = field;
+                }
+            }
+            
+            return {
+                topCareer: quizData.careers[topCareer],
+                skills: scores
+            };
+        }
+
+        function drawSkillChart(skillsData) {
+            const ctx = document.getElementById('skillChart').getContext('2d');
+            const labels = Object.keys(skillsData).map(key => {
+                return quizData.careers[key].name;
+            });
+            const data = Object.values(skillsData);
+            
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Điểm số của bạn',
+                        data: data,
+                        backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        pointBackgroundColor: 'rgba(52, 152, 219, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(52, 152, 219, 1)'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: Math.max(...data) + 2
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+ <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-briefcase me-2"></i>HuuThanh</h5>
+                    <p class="mt-3">Hệ thống hướng nghiệp ứng dụng công nghệ STEM</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>Liên kết</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="index.html" class="text-white">Trang chủ</a></li>
+                        <li><a href="careers.html" class="text-white">Ngành nghề</a></li>
+                        <li><a href="Khaosat.html" class="text-white">Trắc nghiệm</a></li>
+                    </ul>
+                </div>
+              <div id="stats" style="font-size: 14px; color: #555;">
+  Online: <span id="online-count">0</span> |
+  Lượt truy cập: <span id="visit-count">0</span>
+</div>
+                 <a href="Rate.html">
+  <button style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer;">
+    Đánh giá - Phản hồi
+  </button>
+</a>
+                <div class="col-md-3">
+                    <h5>Liên hệ</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> thanhhuu863@gmail.com</li>
+                        <li><i class="fas fa-phone me-2"></i> (+84) 0393392071</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="text-center">
+                <p class="mb-0">© 2025 HuuThanh. Dự án STEM giáo dục.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
